@@ -363,26 +363,76 @@ head(df)</code></pre>
 <p>We may want to get an idea of the average proportion of different coin types by individual. So we can graph that.</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuZGZfbG9uZyA9IGRmX2xvbmcgJT4lXG4gIHNlcGFyYXRlKENvaW4sc2VwPVwiX1wiLGludG8gPSBjKFwiTGJsXCIsXCJDb2luXCIpKVxuZGZfbG9uZyA9IGRmX2xvbmcgJT4lXG4gIHNlcGFyYXRlKENvaW4sc2VwPVwiX1wiLGludG8gPSBjKFwiTGJsXCIsXCJDb2luXCIpKVxuXG5gYGAifQ== -->
-<pre class="r"><code>df_long = df_long %&gt;%
-  separate(Coin,sep=&quot;_&quot;,into = c(&quot;Lbl&quot;,&quot;Coin&quot;))
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuXG4jIE1ha2UgZGF0YSBpbiBsb25nIGZvcm1cblxuZGZfbG9uZyA9IGRmICU+JVxuICBtdXRhdGUoUGVyc29uPXJvd19udW1iZXIoKSkgJT4lXG4gIHBpdm90X2xvbmdlcihjb2xzPXN0YXJ0c193aXRoKFwiUUZSQVwiKSxuYW1lc190byA9IFwiQ29pblwiLCB2YWx1ZXNfdG8gPSBcIkNvdW50XCIpXG5oZWFkKGRmX2xvbmcsNSlcblxuIyBTZXBhcmF0ZSBvdXQgY29sdW1uIENvaW5cblxuZGZfbG9uZyA9IGRmX2xvbmcgJT4lXG4gIHNlcGFyYXRlKENvaW4sc2VwPVwiX1wiLGludG8gPSBjKFwiTGJsXCIsXCJDb2luXCIpKVxuaGVhZChkZl9sb25nLDUpXG5cbiMgcmVtb3ZlIGNvbHVtbiBMYmxcblxuZGZfbG9uZyA9IGRmX2xvbmcgJT4lIHNlbGVjdCgtTGJsKVxuaGVhZChkZl9sb25nLDUpXG5cbiMgcmVhcnJhbmdlIGNvbHVtbnNcblxuZGZfbG9uZyA9IGRmX2xvbmcgJT4lIHNlbGVjdChQZXJzb24sU1VSVkVZLFNFWCxBR0UsZXZlcnl0aGluZygpKVxuaGVhZChkZl9sb25nLDUpXG5cbiMgbWFrZSBpbml0aWFsIGJhciBjaGFydFxuXG5kZl9sb25nICU+JSBncm91cF9ieShDb2luLENvdW50KSAlPiUgY291bnQoKSAlPiUgdW5ncm91cCgpICU+JVxuICBnZ3Bsb3QoKSArIHRoZW1lX2J3KCkgK1xuICBnZW9tX2JhcihhZXMoeD1Db2luLHk9bixmaWxsPWFzLmNoYXJhY3RlcihDb3VudCkpLHN0YXQ9J2lkZW50aXR5Jyxwb3NpdGlvbj0nc3RhY2snKVxuXG4jIG1ha2UgYmFyIGNoYXJ0IGlnbm9yaW5nIDAgY291bnRzXG5cbmRmX2xvbmcgJT4lIGRwbHlyOjpmaWx0ZXIoQ291bnQhPVwiMFwiKSAlPiVcbiAgZ3JvdXBfYnkoQ29pbixDb3VudCkgJT4lIGNvdW50KCkgJT4lIHVuZ3JvdXAoKSAlPiVcbiAgZ2dwbG90KCkgKyB0aGVtZV9idygpICtcbiAgZ2VvbV9iYXIoYWVzKHg9Q29pbix5PW4sZmlsbD1hcy5jaGFyYWN0ZXIoQ291bnQpKSxzdGF0PSdpZGVudGl0eScscG9zaXRpb249J3N0YWNrJylcblxuIyBncm91cCBjb2lucyBpbnRvIGJ1Y2tldHNcblxuZGZfbG9uZyAlPiUgZHBseXI6OmZpbHRlcihDb3VudCE9XCIwXCIpICU+JVxuICBtdXRhdGUoQ291bnQ9Y2FzZV93aGVuKFxuICAgIENvdW50ICVpbiUgYygxLDIsMykgfiBcIjEtM1wiLFxuICAgIENvdW50ICVpbiUgYyg0LDUsNikgfiBcIjQtNlwiLFxuICAgIENvdW50ICVpbiUgYyg3LDgsOSkgfiBcIjctOVwiLFxuICAgIFRSVUUgfiBcIjEwK1wiXG4gICkpICU+JVxuICBncm91cF9ieShDb2luLENvdW50KSAlPiUgY291bnQoKSAlPiUgdW5ncm91cCgpICU+JVxuICBnZ3Bsb3QoKSArIHRoZW1lX2J3KCkgK1xuICBnZW9tX2JhcihhZXMoeD1Db2luLHk9bixmaWxsPUNvdW50KSxzdGF0PSdpZGVudGl0eScscG9zaXRpb249J3N0YWNrJylcbiAgXG4jIGNsZWFuIHVwOiBhZGQgYXhpcyBsYWJlbHMsIHRpdGxlLCBzY2FsZSBheGlzLCB2aXJpZGlzIGRpc2NyZXRlIHNjYWxlXG5cbmRmX2xvbmcgJT4lIGRwbHlyOjpmaWx0ZXIoQ291bnQhPVwiMFwiKSAlPiVcbiAgbXV0YXRlKENvdW50PWNhc2Vfd2hlbihcbiAgICBDb3VudCAlaW4lIGMoMSwyLDMpIH4gXCIxLTNcIixcbiAgICBDb3VudCAlaW4lIGMoNCw1LDYpIH4gXCI0LTZcIixcbiAgICBDb3VudCAlaW4lIGMoNyw4LDkpIH4gXCI3LTlcIixcbiAgICBUUlVFIH4gXCIxMCtcIlxuICApKSAlPiUgXG4gIGdyb3VwX2J5KENvaW4sQ291bnQpICU+JSBjb3VudCgpICU+JSB1bmdyb3VwKCkgJT4lXG4gIGdncGxvdCgpICsgdGhlbWVfYncoKSArXG4gIGdlb21fYmFyKGFlcyh4PWZhY3RvcihDb2luLCBsZXZlbCA9IGMoXCIxY1wiLFwiMWVcIixcIjJjXCIsXCIyZVwiLFwiNWNcIixcIjEwY1wiLFwiMjBjXCIsXCI1MGNcIikpLHk9bixmaWxsPUNvdW50KSxcbiAgICAgICAgICAgc3RhdD0naWRlbnRpdHknLHBvc2l0aW9uPSdzdGFjaycpICtcbiAgc2NhbGVfeF9kaXNjcmV0ZShuYW1lPVwiRnJlbmNoIGNvaW5zXCIpICtcbiAgc2NhbGVfeV9jb250aW51b3VzKG5hbWU9XCJDb3VudCBvZiBjb2luc1wiLGxhYmVscyA9IHNjYWxlczo6Y29tbWEpICtcbiAgZ2d0aXRsZShcIkNvdW50IG9mIEZyZW5jaCBjb2lucyBwZXIgcGVyc29uXCIpICtcbiAgc2NhbGVfZmlsbF92aXJpZGlzX2QobmFtZT1cIkNvdW50IHBlciBwZXJzb25cIilcblxuXG5gYGAifQ== -->
+<pre class="r"><code>
+# Make data in long form
+
+df_long = df %&gt;%
+  mutate(Person=row_number()) %&gt;%
+  pivot_longer(cols=starts_with(&quot;QFRA&quot;),names_to = &quot;Coin&quot;, values_to = &quot;Count&quot;)
+head(df_long,5)
+
+# Separate out column Coin
+
 df_long = df_long %&gt;%
   separate(Coin,sep=&quot;_&quot;,into = c(&quot;Lbl&quot;,&quot;Coin&quot;))
+head(df_long,5)
+
+# remove column Lbl
+
+df_long = df_long %&gt;% select(-Lbl)
+head(df_long,5)
+
+# rearrange columns
+
+df_long = df_long %&gt;% select(Person,SURVEY,SEX,AGE,everything())
+head(df_long,5)
+
+# make initial bar chart
+
+df_long %&gt;% group_by(Coin,Count) %&gt;% count() %&gt;% ungroup() %&gt;%
+  ggplot() + theme_bw() +
+  geom_bar(aes(x=Coin,y=n,fill=as.character(Count)),stat=&#39;identity&#39;,position=&#39;stack&#39;)
+
+# make bar chart ignoring 0 counts
+
+df_long %&gt;% dplyr::filter(Count!=&quot;0&quot;) %&gt;%
+  group_by(Coin,Count) %&gt;% count() %&gt;% ungroup() %&gt;%
+  ggplot() + theme_bw() +
+  geom_bar(aes(x=Coin,y=n,fill=as.character(Count)),stat=&#39;identity&#39;,position=&#39;stack&#39;)
+
+# group coins into buckets
+
+df_long %&gt;% dplyr::filter(Count!=&quot;0&quot;) %&gt;%
+  mutate(Count=case_when(
+    Count %in% c(1,2,3) ~ &quot;1-3&quot;,
+    Count %in% c(4,5,6) ~ &quot;4-6&quot;,
+    Count %in% c(7,8,9) ~ &quot;7-9&quot;,
+    TRUE ~ &quot;10+&quot;
+  )) %&gt;%
+  group_by(Coin,Count) %&gt;% count() %&gt;% ungroup() %&gt;%
+  ggplot() + theme_bw() +
+  geom_bar(aes(x=Coin,y=n,fill=Count),stat=&#39;identity&#39;,position=&#39;stack&#39;)
+  
+# clean up: add axis labels, title, scale axis, viridis discrete scale
+
+df_long %&gt;% dplyr::filter(Count!=&quot;0&quot;) %&gt;%
+  mutate(Count=case_when(
+    Count %in% c(1,2,3) ~ &quot;1-3&quot;,
+    Count %in% c(4,5,6) ~ &quot;4-6&quot;,
+    Count %in% c(7,8,9) ~ &quot;7-9&quot;,
+    TRUE ~ &quot;10+&quot;
+  )) %&gt;% 
+  group_by(Coin,Count) %&gt;% count() %&gt;% ungroup() %&gt;%
+  ggplot() + theme_bw() +
+  geom_bar(aes(x=factor(Coin, level = c(&quot;1c&quot;,&quot;1e&quot;,&quot;2c&quot;,&quot;2e&quot;,&quot;5c&quot;,&quot;10c&quot;,&quot;20c&quot;,&quot;50c&quot;)),y=n,fill=Count),
+           stat=&#39;identity&#39;,position=&#39;stack&#39;) +
+  scale_x_discrete(name=&quot;French coins&quot;) +
+  scale_y_continuous(name=&quot;Count of coins&quot;,labels = scales::comma) +
+  ggtitle(&quot;Count of French coins per person&quot;) +
+  scale_fill_viridis_d(name=&quot;Count per person&quot;)
 </code></pre>
 <!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiV2FybmluZzogRXhwZWN0ZWQgMiBwaWVjZXMuIE1pc3NpbmcgcGllY2VzIGZpbGxlZCB3aXRoIGBOQWAgaW4gMTc5NjI0IHJvd3MgWzEsIDIsIDMsIDQsIDUsIDYsIDcsIDgsIDksIDEwLCAxMSwgMTIsIDEzLCAxNCwgMTUsIDE2LCAxNywgMTgsIDE5LCAyMCwgLi4uXS5cbiJ9 -->
-<pre><code>Warning: Expected 2 pieces. Missing pieces filled with `NA` in 179624 rows [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, ...].</code></pre>
-<!-- rnb-output-end -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuaGVhZChkZl9sb25nLDUpXG5gYGAifQ== -->
-<pre class="r"><code>head(df_long,5)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-frame-begin eyJtZXRhZGF0YSI6eyJjbGFzc2VzIjpbInRibF9kZiIsInRibCIsImRhdGEuZnJhbWUiXSwibnJvdyI6NSwibmNvbCI6Niwic3VtbWFyeSI6eyJBIHRpYmJsZSI6WyI1IHggNiJdfX0sInJkZiI6Ikg0c0lBQUFBQUFBQUJxMVJUVStEUUJBZFBnMGtyU2I5SGFWQXcxMkRwQmNQcG8wR2oxdUtTc1RkaG8vbzBmOXQwam9MREVFdWVIQ1N6Yng5TzQ4M00yeHY0N1VkMndDZ2dhNG9vQmtJd1F6dlBUL3dBWFFWYndyb1lNbjhpVlVMK1l6bkNvL1JQZGl1dDNMWEs5OTEvWDlqQU9iUzRScmFtTXA5L2VhcjVTY3kxY1BmWXppeDZpV0UvQjRGaERUUDdhR1BrTFFBMWhsak92OWF1OEhaZTFwMkh6RTcwdHc5YkIrakozTFpSVEhCbTAxRXdsRFV2Q0wrYnA5M1VBOUZ4a2NtVmlFK0hES2F5V25rbnJDWjczRTNTYzVLNm9aSSs4QXE1andYcU1mYmFTUzVFTWNxRXh4RjZxTGJ3MUNzRkNQaXN1YXlrOE15ZWEzNTJ6S1FCczF6RzdNT0d3TnN0cGJxZWZTZnpKUy9aRHlsM25PMlQya0xjNXk0R2RnNUZsbS9KaHZaMHFsRXhhak9Ua1JPVERNYm5INEFJcG4xZURVREFBQT0ifQ== -->
-<div data-pagedtable="false">
-<script data-pagedtable-source type="application/json">
-{"columns":[{"label":["SURVEY"],"name":[1],"type":["chr"],"align":["left"]},{"label":["SEX"],"name":[2],"type":["dbl"],"align":["right"]},{"label":["AGE"],"name":[3],"type":["dbl"],"align":["right"]},{"label":["Count"],"name":[4],"type":["dbl"],"align":["right"]},{"label":["Lbl"],"name":[5],"type":["chr"],"align":["left"]},{"label":["Coin"],"name":[6],"type":["chr"],"align":["left"]}],"data":[{"1":"01/03/2002","2":"2","3":"47","4":"0","5":"1c","6":"NA"},{"1":"01/03/2002","2":"2","3":"47","4":"0","5":"2c","6":"NA"},{"1":"01/03/2002","2":"2","3":"47","4":"0","5":"5c","6":"NA"},{"1":"01/03/2002","2":"2","3":"47","4":"0","5":"10c","6":"NA"},{"1":"01/03/2002","2":"2","3":"47","4":"0","5":"20c","6":"NA"}],"options":{"columns":{"min":{},"max":[10],"total":[6]},"rows":{"min":[10],"max":[10],"total":[5]},"pages":{}}}
-  </script>
-</div>
-<!-- rnb-frame-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 <!-- pivot_wider, pivot_longer, separate, unite -->
