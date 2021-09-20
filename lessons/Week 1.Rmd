@@ -2,6 +2,9 @@
 title: "Week 1: Data Import, Manipulation, and GitHub"
 output: html_notebook
 ---
+
+<!-- output: rmarkdown::github_document -->
+
 # Objectives:
 
 - Set up and configure GitHub for use within RStudio.  
@@ -30,8 +33,15 @@ git clone https://github.com/engineerchange/r-dsandml-exercises.git
 - Then go to Tools > Project Options... > Git/Svn to configure.  
 - From there, you should see a "Git" tab in the Environment pane where you can Commit, Pull, and Push.  
 
-## Resources
+# Importing 
 
-### GitHub
+Tidyverse's read_csv() function, which is 10x faster than base's read.csv() function.
+
+# Resources
+
+## GitHub
 - [Using Git with RStudio](https://jennybc.github.io/2014-05-12-ubc/ubc-r/session03_git.html), Jenny Bryan  
 - [Happy Git with R](https://happygitwithr.com/), Jenny Bryan  
+
+## Importing
+- [R for Data Science - Data Import](https://r4ds.had.co.nz/data-import.html)  
