@@ -6,3 +6,7 @@
 
 # Mac related
 .DS_Store
+
+# RMarkdown related
+*_cache/
+*_files/
