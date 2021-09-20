@@ -1,7 +1,7 @@
 ---
 title: 'Week 1: Data Import, Manipulation, and GitHub'
 output:
-  output: rmarkdown::github_document
+  html_document
 ---
 
 <!--
