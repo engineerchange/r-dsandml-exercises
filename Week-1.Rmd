@@ -1,0 +1,218 @@
+---
+title: 'Week 1: Data Import, Manipulation, and GitHub'
+output:
+  output: rmarkdown::github_document
+---
+
+<!--
+html_document:
+    df_print: paged
+  html_notebook: default
+  pdf_document: default
+-->
+
+<!-- output: rmarkdown::github_document -->
+
+# Objectives:
+
+- Set up and configure GitHub for use within RStudio.  
+- Importing data in R (a quick overview).  
+- Data manipulation in R (a quick overview).
+
+# Setup GitHub
+
+Follow instructions on [Using Git with RStudio](https://jennybc.github.io/2014-05-12-ubc/ubc-r/session03_git.html). 
+
+For a Windows machine, generally, it is:
+
+- Download and install [Git](https://git-scm.com/download/win).  
+- In RStudio, create an SSH key pair (follow instructions [here](https://happygitwithr.com/ssh-keys.html#create-an-ssh-key-pair)):  
+  - Go to Tools > Global Options... > Git/SVN.  
+  - Point to the executable "git.exe" (/Program Files/Git/)  
+  - Create RSA key in RStudio.  
+  - Copy RSA key. Add the generated key by clicking "new SSH key" into GitHub under your profile's settings > SSH and GPG keys, and pasting it.
+- Open git bash executable, and change directory (`cd`) to the folder you want to save the repo in.  
+- Run the following:  
+```
+git clone https://github.com/engineerchange/r-dsandml-exercises.git
+```
+
+- Open .Rproj file in RStudio.  
+- Then go to Tools > Project Options... > Git/Svn to configure.  
+- From there, you should see a "Git" tab in the Environment pane where you can Commit, Pull, and Push.  
+
+# Importing 
+<!-- read_csv, read_csv2, read_delim, data.table, dtplyr, arrow/parquet -->
+
+Load in necessary libraries.
+
+Data is sourced from Euro Spatial Diffusion Observatory (ESDO) in-person surveys between 2002 and 2011 in France. From [Mendeley](https://data.mendeley.com/datasets/f257j67ym6/2).
+
+```{r, message=FALSE}
+library(tidyverse)
+library(arrow)
+library(microbenchmark) # to do simple benchmarking
+
+df = read_csv2("lessons/data/DB_ESDO_FRANCE_2002-2011.csv") # initial un-cached dataset
+```
+
+Tidyverse's read_csv() function, which is 10x faster than base's read.csv() function.
+
+Compare both:
+
+```{r, message=FALSE, cache=TRUE}
+
+# note we use read.csv2 and read_csv2 because these files are delineated with semi-colons.
+
+func1 <- function(){read.csv2("lessons/data/DB_ESDO_FRANCE_2002-2011.csv")}
+func2 <- function(){read_csv2("lessons/data/DB_ESDO_FRANCE_2002-2011.csv")}
+
+microbenchmark(times=20, unit="ms", func1(), func2())
+```
+
+Can potentially speed up operations after by saving as RDS or arrow's parquet.
+
+```{r, message=FALSE, cache=TRUE}
+
+df = read_csv2("lessons/data/DB_ESDO_FRANCE_2002-2011.csv")
+
+func1 <- function(){write_rds(df,"lessons/data/out.RDS")}
+func2 <- function(){write_parquet(df,"lessons/data/out.parquet")}
+
+microbenchmark(times=20, unit="ms", func1(), func2())
+
+```
+
+Can potentially speed up read times with parquet over standard RDS.
+
+```{r, message=FALSE, cache=TRUE}
+
+func1 <- function(){read_rds("lessons/data/out.RDS")}
+func2 <- function(){read_parquet("lessons/data/out.parquet")}
+
+microbenchmark(times=20, unit="ms", func1(), func2())
+```
+
+Try just reading in specific columns starting with QFRA.
+
+```{r, message=FALSE, cache=TRUE}
+
+func1 <- function(){read_rds("lessons/data/out.RDS") %>% select(starts_with("QFRA"))}
+func2 <- function(){read_parquet("lessons/data/out.parquet",col_select = starts_with("QFRA"))}
+
+microbenchmark(times=20, unit="ms", func1(), func2())
+
+```
+
+# Data Manipulation
+
+Get an idea of what data there is.
+
+```{r, message=FALSE, cache=TRUE}
+head(df,5)
+
+# read metadata
+
+df2 = read_csv2("lessons/data/metadataDB_ESDO_FRANCE_2002-2011.csv")
+head(df2,20)
+head(df2 %>% slice(20:nrow(df2)),20)
+```
+
+Apparently, there are a lot of columns of extra data, so we exclude to just the France coin related columns and demographics we want.
+
+```{r}
+df = df %>% select(SURVEY:AGE,starts_with("QFRA"))
+head(df)
+```
+
+We may want to get an idea of the average proportion of different coin types by individual. So we can graph that.
+
+```{r,message=FALSE}
+
+# Make data in long form
+
+df_long = df %>%
+  mutate(Person=row_number()) %>%
+  pivot_longer(cols=starts_with("QFRA"),names_to = "Coin", values_to = "Count")
+head(df_long,5)
+
+# Separate out column Coin
+
+df_long = df_long %>%
+  separate(Coin,sep="_",into = c("Lbl","Coin"))
+head(df_long,5)
+
+# remove column Lbl
+
+df_long = df_long %>% select(-Lbl)
+head(df_long,5)
+
+# rearrange columns
+
+df_long = df_long %>% select(Person,SURVEY,SEX,AGE,everything())
+head(df_long,5)
+
+# make initial bar chart
+
+df_long %>% group_by(Coin,Count) %>% count() %>% ungroup() %>%
+  ggplot() + theme_bw() +
+  geom_bar(aes(x=Coin,y=n,fill=as.character(Count)),stat='identity',position='stack')
+
+# make bar chart ignoring 0 counts
+
+df_long %>% dplyr::filter(Count!="0") %>%
+  group_by(Coin,Count) %>% count() %>% ungroup() %>%
+  ggplot() + theme_bw() +
+  geom_bar(aes(x=Coin,y=n,fill=as.character(Count)),stat='identity',position='stack')
+
+# group coins into buckets
+
+df_long %>% dplyr::filter(Count!="0") %>%
+  mutate(Count=case_when(
+    Count %in% c(1,2,3) ~ "1-3",
+    Count %in% c(4,5,6) ~ "4-6",
+    Count %in% c(7,8,9) ~ "7-9",
+    TRUE ~ "10+"
+  )) %>%
+  group_by(Coin,Count) %>% count() %>% ungroup() %>%
+  ggplot() + theme_bw() +
+  geom_bar(aes(x=Coin,y=n,fill=Count),stat='identity',position='stack')
+  
+# clean up: add axis labels, title, scale axis, viridis discrete scale
+
+df_long %>% dplyr::filter(Count!="0") %>%
+  mutate(Count=case_when(
+    Count %in% c(1,2,3) ~ "1-3",
+    Count %in% c(4,5,6) ~ "4-6",
+    Count %in% c(7,8,9) ~ "7-9",
+    TRUE ~ "10+"
+  )) %>% 
+  group_by(Coin,Count) %>% count() %>% ungroup() %>%
+  ggplot() + theme_bw() +
+  geom_bar(aes(x=factor(Coin, level = c("1c","1e","2c","2e","5c","10c","20c","50c")),y=n,fill=Count),
+           stat='identity',position='stack') +
+  scale_x_discrete(name="French coins") +
+  scale_y_continuous(name="Count of coins",labels = scales::comma) +
+  ggtitle("Count of French coins per person") +
+  scale_fill_viridis_d(name="Count per person")
+
+
+```
+
+<!-- pivot_wider, pivot_longer, separate, unite -->
+
+# Exploratory Data Analysis (EDA)
+
+<!-- geom_point, geom_histogram, geom_boxplot, gt, left_join, anti_join -->
+
+
+# Resources
+
+## GitHub
+- [Using Git with RStudio](https://jennybc.github.io/2014-05-12-ubc/ubc-r/session03_git.html), Jenny Bryan  
+- [Happy Git with R](https://happygitwithr.com/), Jenny Bryan  
+
+## Importing
+- [R for Data Science - Data Import](https://r4ds.had.co.nz/data-import.html)  
+- [Efficient input/output](https://csgillespie.github.io/efficientR/input-output.html)  
+- [Apache Arrow](https://arrow.apache.org/docs/r/reference/index.html)
