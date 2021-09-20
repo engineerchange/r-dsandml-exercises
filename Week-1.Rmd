@@ -1,7 +1,10 @@
 ---
 title: 'Week 1: Data Import, Manipulation, and GitHub'
 output:
-  html_document
+  github_document: default
+  html_document:
+    df_print: paged
+  html_notebook: default
 ---
 
 <!--
