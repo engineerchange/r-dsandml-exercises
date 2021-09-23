@@ -10,6 +10,7 @@
 # RMarkdown related
 *_cache/
 *_files/
+*.nb.html
 
 # ignore large file types
 *.RDS
