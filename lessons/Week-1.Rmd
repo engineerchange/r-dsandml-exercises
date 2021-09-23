@@ -18,7 +18,7 @@ html_document:
 <!-- output: rmarkdown::github_document -->
 
 # Objectives:
-
+## THIS IS A 2nd comment
 - Set up and configure GitHub for use within RStudio.  
 - Importing data in R (a quick overview).  
 - Data manipulation in R (a quick overview).
