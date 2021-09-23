@@ -52,10 +52,12 @@ Data is sourced from Euro Spatial Diffusion Observatory (ESDO) in-person surveys
 
 ```{r, message=FALSE}
 library(tidyverse)
+library(gghighlight)
+library(gt)
 library(arrow)
 library(microbenchmark) # to do simple benchmarking
-
-df = read_csv2("lessons/data/DB_ESDO_FRANCE_2002-2011.csv") # initial un-cached dataset
+dir = here::here()
+df = read_csv2(paste0(dir,"/lessons/data/DB_ESDO_FRANCE_2002-2011.csv")) # initial un-cached dataset
 ```
 
 Tidyverse's read_csv() function, which is 10x faster than base's read.csv() function.
@@ -66,8 +68,8 @@ Compare both:
 
 # note we use read.csv2 and read_csv2 because these files are delineated with semi-colons.
 
-func1 <- function(){read.csv2("lessons/data/DB_ESDO_FRANCE_2002-2011.csv")}
-func2 <- function(){read_csv2("lessons/data/DB_ESDO_FRANCE_2002-2011.csv")}
+func1 <- function(){read.csv2(paste0(dir,"/lessons/data/DB_ESDO_FRANCE_2002-2011.csv"))}
+func2 <- function(){read_csv2(paste0(dir,"/lessons/data/DB_ESDO_FRANCE_2002-2011.csv"))}
 
 out = microbenchmark(times=20, unit="ms", func1(), func2())
 print(out)
@@ -77,10 +79,10 @@ Can potentially speed up operations after by saving as RDS or arrow's parquet.
 
 ```{r, message=FALSE, cache=TRUE}
 
-df = read_csv2("lessons/data/DB_ESDO_FRANCE_2002-2011.csv")
+df = read_csv2(paste0(dir,"/lessons/data/DB_ESDO_FRANCE_2002-2011.csv"))
 
-func1 <- function(){write_rds(df,"lessons/data/out.RDS")}
-func2 <- function(){write_parquet(df,"lessons/data/out.parquet")}
+func1 <- function(){write_rds(df,paste0(dir,"/lessons/data/out.RDS"))}
+func2 <- function(){write_parquet(df,paste0(dir,"/lessons/data/out.parquet"))}
 
 out = microbenchmark(times=20, unit="ms", func1(), func2())
 print(out)
@@ -90,8 +92,8 @@ Can potentially speed up read times with parquet over standard RDS.
 
 ```{r, message=FALSE, cache=TRUE}
 
-func1 <- function(){read_rds("lessons/data/out.RDS")}
-func2 <- function(){read_parquet("lessons/data/out.parquet")}
+func1 <- function(){read_rds(paste0(dir,"/lessons/data/out.RDS"))}
+func2 <- function(){read_parquet(paste0(dir,"/lessons/data/out.parquet"))}
 
 out = microbenchmark(times=20, unit="ms", func1(), func2())
 print(out)
@@ -101,8 +103,8 @@ Try just reading in specific columns starting with QFRA.
 
 ```{r, message=FALSE, cache=TRUE}
 
-func1 <- function(){read_rds("lessons/data/out.RDS") %>% select(starts_with("QFRA"))}
-func2 <- function(){read_parquet("lessons/data/out.parquet",col_select = starts_with("QFRA"))}
+func1 <- function(){read_rds(paste0(dir,"/lessons/data/out.RDS")) %>% select(starts_with("QFRA"))}
+func2 <- function(){read_parquet(paste0(dir,"/lessons/data/out.parquet"),col_select = starts_with("QFRA"))}
 
 out = microbenchmark(times=20, unit="ms", func1(), func2())
 print(out)
@@ -118,7 +120,7 @@ head(df,5)
 
 # read metadata
 
-df2 = read_csv2("lessons/data/metadataDB_ESDO_FRANCE_2002-2011.csv")
+df2 = read_csv2(paste0(dir,"/lessons/data/metadataDB_ESDO_FRANCE_2002-2011.csv"))
 head(df2,20)
 head(df2 %>% slice(20:nrow(df2)),20)
 ```
@@ -207,6 +209,117 @@ df_long %>% dplyr::filter(Count!="0") %>%
 <!-- pivot_wider, pivot_longer, separate, unite -->
 
 # Exploratory Data Analysis (EDA)
+
+Exploratory Data Analysis is a fancy way of saying explore the data.
+
+Why?  
+- Understand what data there is (features, records, relationships, etc.)  
+- Under what data there isn't (features missing, data missing)  
+- Data problems (misspellings, variable usage / data collection over time, missing data)  
+- Distribution of data (is it normally distributed? is it a sample?)
+
+TL;DR - we ask questions of the data before doing any modelling.  
+
+Let's look at dates of these surveys.  
+
+```{r,message=FALSE}
+df %>% mutate(SURVEY=as.Date(SURVEY,"%m/%d/%Y") %>% as.character()) %>%
+  group_by(SURVEY) %>% count() %>% ungroup() %>%
+  ggplot() +
+  geom_bar(aes(x=SURVEY,y=n),stat='identity') +
+  theme(axis.text.x = element_text(angle=90, hjust=1)) +
+  scale_x_discrete(name="Date of Survey") + scale_y_continuous(name="Count per survey") +
+  ggtitle("Surveyed per survey date")
+
+# do with date
+df %>% mutate(SURVEY=as.Date(SURVEY,"%m/%d/%Y")) %>%
+  group_by(SURVEY) %>% count() %>% ungroup() %>%
+  ggplot() +
+  geom_bar(aes(x=SURVEY,y=n,group=SURVEY),stat='identity',width = 10,colour="red") +
+  theme(axis.text.x = element_text(angle=90, hjust=1)) +
+  scale_x_date(name="Date of Survey") + scale_y_continuous(name="Count per survey") +
+  ggtitle("Surveyed per survey date")
+
+# do our best to dodge the bars
+df %>% mutate(SURVEY=as.Date(SURVEY,"%m/%d/%Y")) %>%
+  group_by(SURVEY) %>% count() %>% ungroup() %>%
+  ggplot() +
+  geom_bar(aes(x=SURVEY,y=n,group=SURVEY),stat='identity',width = 100,colour="red",position="dodge2") +
+  theme(axis.text.x = element_text(angle=90, hjust=1)) +
+  scale_x_date(name="Date of Survey") + scale_y_continuous(name="Count per survey") +
+  ggtitle("Surveyed per survey date")
+```
+
+Let's look at age.  
+
+```{r}
+
+# try to graph age by survey
+df %>% mutate(SURVEY=as.Date(SURVEY,"%m/%d/%Y")) %>%
+    group_by(SURVEY,AGE) %>% count() %>% ungroup() %>%
+  ggplot() + geom_point(aes(x=AGE,y=SURVEY,size=n)) +
+  theme_bw()
+
+# let's jitter the points
+df %>% mutate(SURVEY=as.Date(SURVEY,"%m/%d/%Y")) %>%
+    group_by(SURVEY,AGE) %>% count() %>% ungroup() %>%
+  ggplot() + geom_jitter(aes(x=AGE,y=SURVEY,size=n),width=50) +
+  theme_bw()
+
+# boxplot
+df %>% mutate(SURVEY=as.Date(SURVEY,"%m/%d/%Y") %>% as.character()) %>%
+    group_by(SURVEY,AGE) %>% count() %>% ungroup() %>%
+  ggplot() + geom_boxplot(aes(x=SURVEY,y=AGE,fill=SURVEY)) +
+  scale_fill_discrete(guide="none") +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle=90, hjust=1))
+
+# boxplot + points
+df %>% mutate(SURVEY=as.Date(SURVEY,"%m/%d/%Y") %>% as.character()) %>%
+    group_by(SURVEY,AGE) %>% count() %>% ungroup() %>%
+  ggplot(aes(x=SURVEY,y=AGE,fill=SURVEY)) + 
+  geom_boxplot() +
+  geom_jitter() +
+  scale_fill_discrete(guide="none") +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle=90, hjust=1))
+
+# distribution of age
+df %>% group_by(AGE) %>% count() %>% ungroup() %>%
+  ggplot() + 
+  geom_bar(aes(x=AGE,y=n),stat='identity') +
+  scale_x_continuous(breaks=c(seq(0,100,5))) +
+  theme_bw()
+
+# gghighlight
+df %>% group_by(AGE) %>% count() %>% ungroup() %>%
+  ggplot() + 
+  geom_bar(aes(x=AGE,y=n),stat='identity') +
+  scale_x_continuous(breaks=c(seq(0,100,5))) +
+  gghighlight(AGE==40) + 
+  geom_label(aes(x=AGE,y=n,label=AGE)) +
+  theme_bw() +
+  ggtitle("Distribution of age across all surveys")
+```
+
+```{r, message=FALSE}
+df %>%
+  mutate(AGE_GROUP = case_when(
+    AGE < 20 ~ "<20",
+    AGE >= 20 & AGE <30 ~ "20s",
+    AGE >= 30 & AGE <40 ~ "30s",
+    AGE >= 40 & AGE <50 ~ "40s",
+    AGE >= 50 & AGE <60 ~ "50s",
+    AGE >= 60 & AGE <70 ~ "60s",
+    AGE >= 70 & AGE <80 ~ "70s",
+    AGE >= 80 & AGE <90 ~ "80s",
+    AGE >= 90 & AGE <100 ~ "90s",
+    AGE >= 100 ~ "100+",
+    TRUE ~ "ELSE"
+  )) %>%
+  group_by(AGE_GROUP) %>% count() %>% ungroup() %>%
+  gt()
+```
 
 <!-- geom_point, geom_histogram, geom_boxplot, gt, left_join, anti_join -->
 
