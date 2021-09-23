@@ -13,6 +13,8 @@ html_document:
   pdf_document: default
 -->
 
+<!-- RE THIS IS A COMMENT - SEPTEMBER 23rd 2021 --->
+
 <!-- output: rmarkdown::github_document -->
 
 # Objectives:
