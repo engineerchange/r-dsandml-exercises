@@ -235,44 +235,44 @@ df = read_csv2(&quot;lessons/data/DB_ESDO_FRANCE_2002-2011.csv&quot;) # initial 
 func1 &lt;- function(){read.csv2(&quot;lessons/data/DB_ESDO_FRANCE_2002-2011.csv&quot;)}
 func2 &lt;- function(){read_csv2(&quot;lessons/data/DB_ESDO_FRANCE_2002-2011.csv&quot;)}
 
-microbenchmark(times=20, unit=&quot;ms&quot;, func1(), func2())</code></pre>
-<div data-pagedtable="false">
-<script data-pagedtable-source type="application/json">
-{"columns":[{"label":["expr"],"name":[1],"type":["fct"],"align":["left"]},{"label":["time"],"name":[2],"type":["dbl"],"align":["right"]}],"data":[{"1":"func1()","2":"547266800"},{"1":"func1()","2":"501801200"},{"1":"func1()","2":"568777900"},{"1":"func2()","2":"112749300"},{"1":"func1()","2":"528185000"},{"1":"func2()","2":"107077800"},{"1":"func2()","2":"112105100"},{"1":"func2()","2":"117890500"},{"1":"func2()","2":"109349000"},{"1":"func1()","2":"542063600"},{"1":"func2()","2":"109678500"},{"1":"func1()","2":"511200900"},{"1":"func2()","2":"105835500"},{"1":"func1()","2":"535981700"},{"1":"func1()","2":"526272800"},{"1":"func2()","2":"104150500"},{"1":"func1()","2":"519929000"},{"1":"func1()","2":"525881600"},{"1":"func1()","2":"504408200"},{"1":"func2()","2":"108556000"},{"1":"func2()","2":"116820300"},{"1":"func1()","2":"538469400"},{"1":"func2()","2":"107311400"},{"1":"func1()","2":"530759200"},{"1":"func2()","2":"105063000"},{"1":"func2()","2":"104701400"},{"1":"func2()","2":"119562600"},{"1":"func1()","2":"530128500"},{"1":"func1()","2":"533351100"},{"1":"func2()","2":"107206600"},{"1":"func1()","2":"532578300"},{"1":"func1()","2":"502119500"},{"1":"func2()","2":"107519300"},{"1":"func1()","2":"518666600"},{"1":"func2()","2":"106852500"},{"1":"func2()","2":"113656000"},{"1":"func2()","2":"117935800"},{"1":"func1()","2":"529682300"},{"1":"func2()","2":"108231400"},{"1":"func1()","2":"498371700"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
-  </script>
-</div>
+out = microbenchmark(times=20, unit=&quot;ms&quot;, func1(), func2())
+print(out)</code></pre>
+<pre><code>## Unit: milliseconds
+##     expr      min       lq     mean   median       uq      max neval
+##  func1() 517.8121 525.9607 543.7409 539.8493 552.8282 640.9635    20
+##  func2() 102.0198 110.9507 117.1738 117.2285 122.4620 139.8101    20</code></pre>
 <p>Can potentially speed up operations after by saving as RDS or arrow’s parquet.</p>
 <pre class="r"><code>df = read_csv2(&quot;lessons/data/DB_ESDO_FRANCE_2002-2011.csv&quot;)
 
 func1 &lt;- function(){write_rds(df,&quot;lessons/data/out.RDS&quot;)}
 func2 &lt;- function(){write_parquet(df,&quot;lessons/data/out.parquet&quot;)}
 
-microbenchmark(times=20, unit=&quot;ms&quot;, func1(), func2())</code></pre>
-<div data-pagedtable="false">
-<script data-pagedtable-source type="application/json">
-{"columns":[{"label":["expr"],"name":[1],"type":["fct"],"align":["left"]},{"label":["time"],"name":[2],"type":["dbl"],"align":["right"]}],"data":[{"1":"func2()","2":"581531400"},{"1":"func2()","2":"523901200"},{"1":"func2()","2":"525978300"},{"1":"func2()","2":"523639000"},{"1":"func1()","2":"227534000"},{"1":"func2()","2":"85931400"},{"1":"func2()","2":"84629400"},{"1":"func2()","2":"84839000"},{"1":"func1()","2":"54863700"},{"1":"func2()","2":"86057700"},{"1":"func1()","2":"55222300"},{"1":"func1()","2":"57540500"},{"1":"func2()","2":"81322100"},{"1":"func2()","2":"87021900"},{"1":"func2()","2":"96574100"},{"1":"func1()","2":"50439000"},{"1":"func1()","2":"53940500"},{"1":"func2()","2":"87120800"},{"1":"func1()","2":"61381800"},{"1":"func2()","2":"81733500"},{"1":"func1()","2":"50120100"},{"1":"func2()","2":"84723300"},{"1":"func1()","2":"53700500"},{"1":"func1()","2":"53773900"},{"1":"func2()","2":"82034800"},{"1":"func1()","2":"50906200"},{"1":"func2()","2":"87954000"},{"1":"func1()","2":"50213100"},{"1":"func2()","2":"81153400"},{"1":"func1()","2":"53653200"},{"1":"func1()","2":"62522500"},{"1":"func2()","2":"81888800"},{"1":"func1()","2":"50793400"},{"1":"func1()","2":"54595400"},{"1":"func2()","2":"86854400"},{"1":"func1()","2":"50632500"},{"1":"func1()","2":"53787400"},{"1":"func2()","2":"81518700"},{"1":"func1()","2":"50617900"},{"1":"func1()","2":"63826500"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
-  </script>
-</div>
+out = microbenchmark(times=20, unit=&quot;ms&quot;, func1(), func2())
+print(out)</code></pre>
+<pre><code>## Unit: milliseconds
+##     expr     min       lq     mean   median       uq       max neval
+##  func1() 49.8892 52.96650 157.4242 54.91780 59.16995 2094.3026    20
+##  func2() 82.2547 84.16415 107.6357 87.81775 91.72385  482.7903    20</code></pre>
 <p>Can potentially speed up read times with parquet over standard RDS.</p>
 <pre class="r"><code>func1 &lt;- function(){read_rds(&quot;lessons/data/out.RDS&quot;)}
 func2 &lt;- function(){read_parquet(&quot;lessons/data/out.parquet&quot;)}
 
-microbenchmark(times=20, unit=&quot;ms&quot;, func1(), func2())</code></pre>
-<div data-pagedtable="false">
-<script data-pagedtable-source type="application/json">
-{"columns":[{"label":["expr"],"name":[1],"type":["fct"],"align":["left"]},{"label":["time"],"name":[2],"type":["dbl"],"align":["right"]}],"data":[{"1":"func1()","2":"33431500"},{"1":"func2()","2":"33066100"},{"1":"func1()","2":"36469900"},{"1":"func2()","2":"25361200"},{"1":"func1()","2":"41643700"},{"1":"func1()","2":"33475400"},{"1":"func1()","2":"34789800"},{"1":"func2()","2":"28875500"},{"1":"func2()","2":"24618800"},{"1":"func2()","2":"24344100"},{"1":"func2()","2":"22004500"},{"1":"func2()","2":"25333700"},{"1":"func2()","2":"23123100"},{"1":"func1()","2":"36349700"},{"1":"func2()","2":"24968400"},{"1":"func2()","2":"21716900"},{"1":"func1()","2":"36105400"},{"1":"func2()","2":"33243700"},{"1":"func2()","2":"22609300"},{"1":"func2()","2":"23368600"},{"1":"func2()","2":"22628700"},{"1":"func2()","2":"22476500"},{"1":"func1()","2":"32926200"},{"1":"func1()","2":"36313100"},{"1":"func1()","2":"33236300"},{"1":"func1()","2":"33049700"},{"1":"func1()","2":"36511700"},{"1":"func1()","2":"32558200"},{"1":"func1()","2":"36349600"},{"1":"func2()","2":"33052700"},{"1":"func1()","2":"33105400"},{"1":"func1()","2":"33626200"},{"1":"func2()","2":"22193100"},{"1":"func2()","2":"23388100"},{"1":"func2()","2":"27755500"},{"1":"func1()","2":"32770100"},{"1":"func2()","2":"21703700"},{"1":"func1()","2":"34177800"},{"1":"func1()","2":"36263600"},{"1":"func1()","2":"36426000"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
-  </script>
-</div>
+out = microbenchmark(times=20, unit=&quot;ms&quot;, func1(), func2())
+print(out)</code></pre>
+<pre><code>## Unit: milliseconds
+##     expr     min       lq     mean   median       uq      max neval
+##  func1() 32.4089 35.76935 51.67717 38.00440 47.66170 116.9343    20
+##  func2() 21.1136 22.39810 27.67072 22.72825 25.71045  90.5609    20</code></pre>
 <p>Try just reading in specific columns starting with QFRA.</p>
 <pre class="r"><code>func1 &lt;- function(){read_rds(&quot;lessons/data/out.RDS&quot;) %&gt;% select(starts_with(&quot;QFRA&quot;))}
 func2 &lt;- function(){read_parquet(&quot;lessons/data/out.parquet&quot;,col_select = starts_with(&quot;QFRA&quot;))}
 
-microbenchmark(times=20, unit=&quot;ms&quot;, func1(), func2())</code></pre>
-<div data-pagedtable="false">
-<script data-pagedtable-source type="application/json">
-{"columns":[{"label":["expr"],"name":[1],"type":["fct"],"align":["left"]},{"label":["time"],"name":[2],"type":["dbl"],"align":["right"]}],"data":[{"1":"func1()","2":"40342600"},{"1":"func1()","2":"36756500"},{"1":"func2()","2":"9890100"},{"1":"func2()","2":"10929800"},{"1":"func1()","2":"35492800"},{"1":"func1()","2":"38691300"},{"1":"func1()","2":"34436300"},{"1":"func1()","2":"34750900"},{"1":"func1()","2":"38241100"},{"1":"func1()","2":"35139600"},{"1":"func2()","2":"8609100"},{"1":"func1()","2":"38395600"},{"1":"func2()","2":"8856800"},{"1":"func2()","2":"9076100"},{"1":"func2()","2":"15672900"},{"1":"func1()","2":"120359400"},{"1":"func1()","2":"35099300"},{"1":"func1()","2":"34998300"},{"1":"func1()","2":"37787500"},{"1":"func2()","2":"8515600"},{"1":"func2()","2":"8275400"},{"1":"func2()","2":"8314900"},{"1":"func2()","2":"8414600"},{"1":"func2()","2":"8700900"},{"1":"func1()","2":"34209400"},{"1":"func2()","2":"8558200"},{"1":"func2()","2":"8638700"},{"1":"func2()","2":"8983600"},{"1":"func1()","2":"41601900"},{"1":"func2()","2":"8853200"},{"1":"func2()","2":"11615100"},{"1":"func1()","2":"40979900"},{"1":"func2()","2":"8289000"},{"1":"func1()","2":"33941100"},{"1":"func1()","2":"37520100"},{"1":"func2()","2":"8251000"},{"1":"func1()","2":"39161700"},{"1":"func2()","2":"8716300"},{"1":"func1()","2":"100954300"},{"1":"func2()","2":"8330000"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
-  </script>
-</div>
+out = microbenchmark(times=20, unit=&quot;ms&quot;, func1(), func2())
+print(out)</code></pre>
+<pre><code>## Unit: milliseconds
+##     expr     min       lq     mean   median      uq      max neval
+##  func1() 34.0747 35.39310 49.83758 38.75455 41.6431 128.3373    20
+##  func2()  8.3479  8.52075  9.23006  8.63165  8.9474  12.7798    20</code></pre>
 </div>
 <div id="data-manipulation" class="section level1">
 <h1>Data Manipulation</h1>

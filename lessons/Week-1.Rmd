@@ -69,7 +69,8 @@ Compare both:
 func1 <- function(){read.csv2("lessons/data/DB_ESDO_FRANCE_2002-2011.csv")}
 func2 <- function(){read_csv2("lessons/data/DB_ESDO_FRANCE_2002-2011.csv")}
 
-microbenchmark(times=20, unit="ms", func1(), func2())
+out = microbenchmark(times=20, unit="ms", func1(), func2())
+print(out)
 ```
 
 Can potentially speed up operations after by saving as RDS or arrow's parquet.
@@ -81,8 +82,8 @@ df = read_csv2("lessons/data/DB_ESDO_FRANCE_2002-2011.csv")
 func1 <- function(){write_rds(df,"lessons/data/out.RDS")}
 func2 <- function(){write_parquet(df,"lessons/data/out.parquet")}
 
-microbenchmark(times=20, unit="ms", func1(), func2())
-
+out = microbenchmark(times=20, unit="ms", func1(), func2())
+print(out)
 ```
 
 Can potentially speed up read times with parquet over standard RDS.
@@ -92,7 +93,8 @@ Can potentially speed up read times with parquet over standard RDS.
 func1 <- function(){read_rds("lessons/data/out.RDS")}
 func2 <- function(){read_parquet("lessons/data/out.parquet")}
 
-microbenchmark(times=20, unit="ms", func1(), func2())
+out = microbenchmark(times=20, unit="ms", func1(), func2())
+print(out)
 ```
 
 Try just reading in specific columns starting with QFRA.
@@ -102,7 +104,8 @@ Try just reading in specific columns starting with QFRA.
 func1 <- function(){read_rds("lessons/data/out.RDS") %>% select(starts_with("QFRA"))}
 func2 <- function(){read_parquet("lessons/data/out.parquet",col_select = starts_with("QFRA"))}
 
-microbenchmark(times=20, unit="ms", func1(), func2())
+out = microbenchmark(times=20, unit="ms", func1(), func2())
+print(out)
 
 ```
 
