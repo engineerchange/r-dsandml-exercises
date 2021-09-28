@@ -1,0 +1,112 @@
+---
+title: 'Week 2: EDA and Simple Modelling'
+output:
+  html_document:
+    df_print: paged
+  github_document: default
+---
+
+# Objectives:
+
+- Exploratory Data Analysis (EDA)
+- Simple modelling (linear regression, residuals, logistic regression)
+
+# Exploratory Data Analysis
+
+Exploratory Data Analysis is about:
+- univariate non-graphical EDA
+- univariate graphical EDA
+- multivariate non-graphical EDA
+- multivariate graphical EDA
+
+Methods to explore:  
+- Variation (describe behavior within variable)  
+- Covariation (describe behavior between variables)  
+- Missing data / anomalies    
+- Patterns / correlations  
+
+Tools:
+- tables  
+- scatterplot  
+- histogram  
+- boxplot  
+- heatplot and hex plots  
+
+Pull in new dataset.
+
+Dataset from [Department of Labor](https://www.dol.gov/agencies/eta/foreign-labor/performance) about applications for permanent employment certification. Download xlsx and put in folder /lessons/data.
+
+```{r, message=FALSE}
+library(tidyverse)
+library(readxl)
+# in some cases, we need to change guess_max because the column may have nulls for a lot of the first rows
+df = read_excel("lessons/data/PERM_Disclosure_Data_FY2021_Q3.xlsx",guess_max=15000)
+head(df,2) %>% as.data.frame()
+```
+
+Do general data checks to understand the data you are dealing with.
+
+```{r, message=FALSE}
+
+# validate if all cases are distinct
+df %>% distinct(CASE_NUMBER) %>% nrow() == nrow(df)
+
+# look at received yr
+df %>% mutate(received_yr=lubridate::year(RECEIVED_DATE)) %>% group_by(received_yr) %>% count() %>% ungroup()
+
+# look at decision yr
+df %>% mutate(decision_yr=lubridate::year(DECISION_DATE)) %>% group_by(decision_yr) %>% count() %>% ungroup()
+
+# look at employers
+df %>% group_by(EMPLOYER_NAME) %>% count() %>% ungroup() %>% arrange(desc(n))
+```
+
+Now, we can make some interesting graphics / tables to describe trends.
+
+```{r, message=FALSE}
+options(scipen=999)
+summary(df$PW_WAGE)
+
+wages = df %>%
+    group_by(PW_WAGE) %>% count() %>% ungroup()
+
+wages %>%
+    ggplot(aes(x=PW_WAGE,y=n)) + geom_bar(stat='identity')
+
+wages %>%
+  ggplot(aes(x=PW_WAGE,y=n)) + geom_point()
+
+df %>%
+  group_by(PW_WAGE) %>% count() %>% ungroup() %>%
+  ggplot(aes(x=PW_WAGE,y=n)) + geom_point()
+
+df %>%
+  group_by(PW_WAGE) %>% count() %>% ungroup() %>%
+  ggplot(aes(x=PW_WAGE,y=n)) + geom_point()
+
+top_10_employers = df %>% group_by(EMPLOYER_NAME) %>% count() %>% ungroup() %>% arrange(desc(n)) %>% head(10)
+
+df %>% mutate(wage_grp = cut_number(PW_WAGE,4)) %>%
+  select(PW_WAGE,wage_grp) %>%
+  ggplot(aes(wage_grp)) + geom_bar()
+```
+
+<!-- lehd.ces.census.gov -->
+
+<!-- closure of rural hospitals -->
+
+<!-- transit, rural, community health, public health / epidemiology, water access, electoral datasets -->
+
+
+# Linear Regression
+
+# Resources
+
+## Exploratory Data Analysis (EDA)  
+
+- [R for Data Science: Exploratory Data Analysis](https://r4ds.had.co.nz/exploratory-data-analysis.html)  
+- [StackExchange on EDA](https://stats.stackexchange.com/questions/114610/what-is-the-relationship-between-y-and-x-in-this-plot)  
+- [Experimental Design and Analysis by Howard J. Seltman (2018), Chapter 4: Exploratory Data Analysis](https://www.stat.cmu.edu/~hseltman/309/Book/chapter4.pdf)  
+- [Exploratory Data Analysis - EPA](https://www.epa.gov/caddis-vol4/exploratory-data-analysis)  
+- [Biomedical Data Science, Exploratory Data Analysis](https://genomicsclass.github.io/book/pages/exploratory_data_analysis.html)
+- [Beginners Guide to Explanatory Data Analysis by Irem Tanrıverdi](https://www.analyticsvidhya.com/blog/2021/04/beginners-guide-to-explanatory-data-analysis/)
