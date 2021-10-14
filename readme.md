@@ -1,11 +1,16 @@
 # R Data Science and Machine Learning Exercises
 
+View this page at [https://engineerchange.github.io/r-dsandml-exercises/](https://engineerchange.github.io/r-dsandml-exercises/).  
+
 ## Week 1/2 - Data Import, Manipulation, and GitHub
 
 Topics/Packages:  
 - Data Import: tidyverse (readr, magrittr), janitor, data.table, dtplyr, arrow  
 - Data Manipulation: tidyverse (dplyr, tidyr)  
 - Exploratory Data Analysis (EDA): tidyverse (ggplot2), gt, gtExtra  
+
+[Week 1 lesson](/lessons/Week-1.html)  
+[Week 2 lesson](/lessons/Week-2.html)  
 
 ## Week 3/4 - Forecasting, Time Series, Optimization, TidyModels
 

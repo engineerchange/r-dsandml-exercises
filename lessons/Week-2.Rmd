@@ -34,11 +34,13 @@ Tools:
 
 Pull in new dataset.
 
-Dataset from [Department of Labor](https://www.dol.gov/agencies/eta/foreign-labor/performance) about applications for permanent employment certification. Download xlsx and put in folder /lessons/data.
+Dataset from [Department of Labor](https://www.dol.gov/agencies/eta/foreign-labor/performance) about applications for permanent employment certification. Download the "PERM" FY 2021 Disclosure file (xlsx) and put in folder /lessons/data.
 
 ```{r, message=FALSE}
 library(tidyverse)
 library(readxl)
+library(gt)
+library(gtExtras) #remotes::install_github("jthomasmock/gtExtras")
 # in some cases, we need to change guess_max because the column may have nulls for a lot of the first rows
 df = read_excel("lessons/data/PERM_Disclosure_Data_FY2021_Q3.xlsx",guess_max=15000)
 head(df,2) %>% as.data.frame()
@@ -64,41 +66,71 @@ df %>% group_by(EMPLOYER_NAME) %>% count() %>% ungroup() %>% arrange(desc(n))
 Now, we can make some interesting graphics / tables to describe trends.
 
 ```{r, message=FALSE}
-options(scipen=999)
 summary(df$PW_WAGE)
 
 wages = df %>%
     group_by(PW_WAGE) %>% count() %>% ungroup()
 
 wages %>%
-    ggplot(aes(x=PW_WAGE,y=n)) + geom_bar(stat='identity')
+    ggplot(aes(x=PW_WAGE,y=n)) + geom_bar(stat='identity',width=20) + theme_bw()
 
 wages %>%
-  ggplot(aes(x=PW_WAGE,y=n)) + geom_point()
+  ggplot(aes(x=PW_WAGE,y=n)) + geom_point() + theme_bw()
 
 df %>%
   group_by(PW_WAGE) %>% count() %>% ungroup() %>%
-  ggplot(aes(x=PW_WAGE,y=n)) + geom_point()
+  ggplot(aes(x=PW_WAGE,y=n)) + geom_point() + theme_bw()
 
 df %>%
   group_by(PW_WAGE) %>% count() %>% ungroup() %>%
-  ggplot(aes(x=PW_WAGE,y=n)) + geom_point()
+  ggplot(aes(x=PW_WAGE,y=n)) + geom_point() + theme_bw()
 
 top_10_employers = df %>% group_by(EMPLOYER_NAME) %>% count() %>% ungroup() %>% arrange(desc(n)) %>% head(10)
 
-df %>% mutate(wage_grp = cut_number(PW_WAGE,4)) %>%
-  select(PW_WAGE,wage_grp) %>%
-  ggplot(aes(wage_grp)) + geom_bar()
+df_top_10 = df %>% dplyr::filter(EMPLOYER_NAME %in% top_10_employers$EMPLOYER_NAME)
+
+gg_all = df %>% 
+  ggplot(aes(x=PW_WAGE)) +
+  geom_histogram(breaks=seq(0,300000,by=10000),fill="black",colour="white") +
+  scale_x_continuous(name="Wage",breaks=seq(0,300000,by=50000),labels=scales::comma) +
+  scale_y_continuous(name="Applicants w/ Wage",labels=scales::comma) +
+  theme_bw() +
+  ggtitle("Wages per Applicant (2020-2021)")
+
+gg_all
+
+gg_top10 = df %>% 
+  dplyr::filter(EMPLOYER_NAME %in% top_10_employers$EMPLOYER_NAME) %>%
+  ggplot(aes(x=PW_WAGE)) +
+  geom_histogram(breaks=seq(0,300000,by=10000),fill="black",colour="white") +
+  scale_x_continuous(name="Wage",breaks=seq(0,300000,by=50000),labels=scales::comma) +
+  scale_y_continuous(name="Applicants w/ Wage",labels=scales::comma) +
+  theme_bw() +
+  ggtitle("Wages per Applicant (2020-2021)")
+  
+ggplot() +
+  geom_histogram(data = df,mapping=aes(x=PW_WAGE),breaks=seq(0,300000,by=10000),fill="grey",colour="white") +
+  geom_histogram(data = df_top_10,mapping=aes(x=PW_WAGE),breaks=seq(0,300000,by=10000),fill="black",colour="white") +
+  scale_x_continuous(name="Wage",breaks=seq(0,300000,by=50000),labels=scales::comma) +
+  scale_y_continuous(name="Applicants w/ Wage",labels=scales::comma) +
+  theme_bw() +
+  ggtitle(label = "Wages per Applicant (2020-2021)", subtitle = "Black represents top 10 employers")
+
+df_top_10 = df %>% dplyr::filter(EMPLOYER_NAME %in% top_10_employers$EMPLOYER_NAME)
+
+top_paid = df %>% arrange(desc(PW_WAGE)) %>% top_frac(0.1,wt = PW_WAGE) %>% 
+  group_by(EMPLOYER_NAME) %>% summarise(n=n(),sum=sum(PW_WAGE,na.rm=TRUE),max=max(PW_WAGE,na.rm=TRUE),med=stats::median(PW_WAGE,na.rm=TRUE)) %>% ungroup() %>% 
+  arrange(desc(n)) %>% head(10)
+
+df %>% dplyr::filter(EMPLOYER_NAME %in% top_paid$EMPLOYER_NAME)
+
+# gtExtras and gt_plt_bullet() is a new package/function and the syntax may change in the future
+top_paid %>% 
+  dplyr::mutate(plot_column = max) %>%
+  gt() %>% gt_plt_bullet(column=plot_column,target=med,width=45,colors= c("lightblue","black")) %>%
+  gt::cols_label(EMPLOYER_NAME=md("Employer"),n=md("Count"),sum=md("Sum"),max=md("Wage")) %>% gt::fmt_number(columns=c(sum,max),decimals=0)
+
 ```
-
-<!-- lehd.ces.census.gov -->
-
-<!-- closure of rural hospitals -->
-
-<!-- transit, rural, community health, public health / epidemiology, water access, electoral datasets -->
-
-
-# Linear Regression
 
 # Resources
 
