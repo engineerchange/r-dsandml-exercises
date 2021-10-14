@@ -10,7 +10,7 @@ Topics/Packages:
 ## Week 3/4 - Forecasting, Time Series, Optimization, TidyModels
 
 Packages:  
-- Forecasting: forcats  
+- Forecasting: stats, broom/sweep
 - Time Series Analysis: lubridate, timetk  
 - fable, zoo, prophet, tidyquant, lattice, tidymodels  
 
@@ -67,3 +67,4 @@ Resources:
 - NLP: quanteda, tidytext, tm, OpenNLP, (NLTK)  
 - Data Visualization: ggplot2, gt, gtExtra, kableExtra    
 - Graph Analytics: graphX
+- Manipulation: forcats
