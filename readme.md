@@ -9,8 +9,8 @@ Topics/Packages:
 - Data Manipulation: tidyverse (dplyr, tidyr)  
 - Exploratory Data Analysis (EDA): tidyverse (ggplot2), gt, gtExtra  
 
-[Week 1 lesson](/lessons/Week-1.html)  
-[Week 2 lesson](/lessons/Week-2.html)  
+[Week 1 lesson](https://engineerchange.github.io/r-dsandml-exercises/lessons/Week-1.html)  
+[Week 2 lesson](https://engineerchange.github.io/r-dsandml-exercises/lessons/Week-2.html)  
 
 ## Week 3/4 - Forecasting, Time Series, Optimization, TidyModels
 
