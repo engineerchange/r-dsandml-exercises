@@ -25,7 +25,7 @@ Methods to explore:
 - Missing data / anomalies    
 - Patterns / correlations  
 
-Tools:
+Tools:  
 - tables  
 - scatterplot  
 - histogram  
