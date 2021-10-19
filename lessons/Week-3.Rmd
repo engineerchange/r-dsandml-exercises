@@ -1,0 +1,190 @@
+---
+title: "Week 3: Forecasting"
+output:
+  html_document:
+    df_print: paged
+  github_document: default
+---
+
+<!-- lehd.ces.census.gov -->
+
+<!-- closure of rural hospitals -->
+
+<!-- transit, rural, community health, public health / epidemiology, water access, electoral datasets -->
+
+# Objectives  
+
+- Experimenting with forecasting methods (Moving Average, Holt-Winters)  
+- Validation methods (autocorrelation, Ljung-Box test, analysis of residuals)  
+- Packages used (stats, forecast)  
+
+# Gathering Data  
+
+Data used was sourced from [Bureau of Labor Statistics](https://data.bls.gov/cgi-bin/surveymost?ap). The specific data used is for the following breakfast commodities: milk, eggs, coffee, bacon. It represents the "CPI Average Price Data, U.S. city average (AP)".  
+
+```{r, message=FALSE}
+library(tidyverse)
+library(readxl)
+library(forecast)
+
+# read in data
+df = read_excel("lessons/data/forecasting_milk.xlsx") %>% slice(9:nrow(.)) %>% mutate(type="Milk") %>%
+  rbind(read_excel("lessons/data/forecasting_eggs.xlsx") %>% slice(10:nrow(.)) %>% mutate(type="Eggs")) %>%
+  rbind(read_excel("lessons/data/forecasting_coffee.xlsx") %>% slice(10:nrow(.)) %>% mutate(type="Coffee")) %>%
+  rbind(read_excel("lessons/data/forecasting_bacon.xlsx") %>% slice(10:nrow(.)) %>% mutate(type="Bacon"))
+
+# col names taken from first row and strip that row from df
+names(df) <- df[1,] %>% unlist() # pass as character vector
+df = df %>% slice(2:nrow(.))
+
+# rename cols
+names(df) <- c("Year","Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec","Type")
+
+# preview data
+head(df,20)
+
+# make data long-form
+df = df %>% pivot_longer(cols=c("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"),names_to="Month",values_to="Avg")
+df = df %>% mutate(Year=as.numeric(Year),Avg=as.numeric(Avg))
+df = df %>% mutate(Date=as.Date(paste(Year,Month, '01'), '%Y %B %d'))
+
+# plot data
+df %>% 
+  ggplot(aes(x=Date,y=Avg,colour=Type)) + geom_line() + geom_point() + theme_bw() +
+  ggtitle("Breakfast Goods, Avg Cost (2011 to 2021)") +
+  scale_y_continuous(name = "Cost (Avg)",labels = scales::dollar)
+```
+
+# Formatting as Time Series
+
+Some functions in R expect time series in order to handle the data frames.  
+
+From the above chart, we can see that bacon has had the oddest trends of the 4 in the last few years. Let's dive deeper into bacon.  
+
+## ts() and preview data
+
+```{r, message=FALSE}
+# make time series
+# https://towardsdatascience.com/time-series-forecasting-in-r-with-holt-winters-16ef9ebdb6c0
+
+df_bacon = df %>%
+  dplyr::filter(Type=="Bacon")
+
+# convert to time series (we expect monthly points between 2011 and 2021)
+bacon_ts = ts(df_bacon$Avg, start = c(2011,1), end = c(2021,1), frequency = 12)
+
+# not necessary for this dataset, but we can use tsclean() to remove outliers and input missing values, if necessary
+bacon_ts = tsclean(bacon_ts)
+
+# use baseR's plot to plot a simple plot of the bacon time series
+plot(bacon_ts, ylab="avg cost", xlim=c(2011,2021), main="Average Cost of Bacon Time Series")
+
+```
+
+## Seasonality (moving average method)
+
+We can see that the average cost of bacon is trending up and down throughout the year. How do we diagnose further?  
+
+```{r, message=FALSE}
+
+# take moving average and apply across different periods
+df_bacon_ma = df_bacon 
+df_bacon_ma$count = df_bacon_ma$Avg
+
+df_bacon_ma$cnt_ma_monthly = ma(df_bacon$Avg,order=1)
+df_bacon_ma$cnt_ma_quarterly = ma(df_bacon$Avg,order=3)
+df_bacon_ma$cnt_ma_yearly = ma(df_bacon$Avg,order=12)
+
+ggplot() + 
+    geom_line(data = df_bacon_ma, aes(x = Date, y = cnt_ma_monthly, colour = "Monthly Moving Average")) +
+    geom_line(data = df_bacon_ma, aes(x = Date, y = cnt_ma_quarterly,   colour = "Quarterly Moving Average"))  +
+    geom_line(data = df_bacon_ma, aes(x = Date, y = cnt_ma_yearly, colour = "Yearly Moving Average"))  +
+    ylab('Avg Cost') +
+  theme_bw()
+```
+
+Modeling using moving average, we can see volatility is high at the monthly basis, but starts to get smoother and abstracts more from the raw data at a quarterly or annual basis.  
+
+## Decomposition
+
+We decompose the time series and decouple it into its three building blocks: seasonality, trend/cycle, and residual/error.    
+
+- Seasonality - fluctuations related to calendar cycles (difference in trends across seasons, weekdays/weekends, etc.)  
+- Trend - simply whether over time the data is increasing or decreasing  
+- Cycle - increasing or decreasing patterns that are not seasonal. Trend and cycle components are estimated using moving averages.  
+- Residual/Error - data that cannot be attributed to seasonal, cycle, or trend components.  
+
+```{r, message=FALSE}
+# we use decompose() of the stats package to decompose any seasonality effects using moving average
+components_bacon <- decompose(bacon_ts)
+
+plot(components_bacon)
+
+```
+
+From this, you can see how visually each component adds up to our original plot. This helps you interpret whether or not you should model as an additive model or as a multiplicative model.
+
+An additive model can simply have the components added together. If you have an increasing trend, you still see roughly the same size peaks and troughs throughout the time series (i.e., the absolute value is growing but changes stay relative).
+
+A multiplicative model has the components multiplied together. If you have an increasing trend, the amplitude of seasonal activity increases. Everything becomes more exaggerated. (Example: web traffic).
+
+Doing this analysis, it's important to consider the scales of each component. If "random" has a range significantly larger than seasonal or trend, there can be a concern.
+
+For us, this is the case... so we proceed.
+
+## Holt-Winters Method
+
+```{r, message=FALSE}
+# standard Holt Winters fitting
+HW1 <- HoltWinters(bacon_ts)
+
+# we can customize and change parameters
+HW2 <- HoltWinters(bacon_ts, alpha=0.1, beta=0.1, gamma=0.2)
+
+# plot each method's predictions using the original data
+plot(bacon_ts, ylab="avg cost", xlim=c(2011,2021), main="Average Cost of Bacon (Holt Winters Prediction)")
+lines(HW1$fitted[,1], lty=2, col="blue")
+lines(HW2$fitted[,2], lty=2, col="red")
+
+```
+
+## Model Validation
+
+The forecast library allows more flexibility with confidence intervals and allows us to evaluate the quality of predictions. It provides the residuals for us to perform quick analysis on.  
+
+```{r, message=FALSE}
+# add confidence interval
+HW1_for = forecast(HW1, h=24, level=c(80,95))
+
+plot(HW1_for, xlim=c(2011,2024))
+lines(HW1_for$fitted, lty=2, col="purple")
+
+```
+
+Use the autocorrelation (acf function) to evaluate the correlation of fit residuals across temporal (time-based) separations in the time series. Phrased differently, it measures the self-similarity of the signal over different delay times (read: lag).    
+
+```{r, message=FALSE}
+
+# autocorrelation method
+# Ideally, for non-zero lag, the ACF bars are within the blue range bars.
+acf(HW1_for$residuals, lag.max=20, na.action=na.pass)
+# note: na.action = na.pass because the last value of $residuals is NA
+
+# Box.test (Ljung-Box) is used to indicate the presences of temporal correlations in our data.  
+# Want the p-score > 0.05 for 95% chance the residuals are independent.
+
+Box.test(HW1_for$residuals, lag=20, type="Ljung-Box")
+
+# histogram of residuals. We want residuals to have no heavy skew in the histogram (look for bell curve)
+hist(HW1_for$residuals)
+
+```
+
+This perhaps shows that Holt-Winters is likely not the _best_ method for forecasting our bacon average cost data.  
+
+# Resources
+- [Forecasting: Principles and Practice, 2nd ed., Rob Hyndman & George Athanasopoulos](https://otexts.com/fpp2/)  
+- [Oracle blog on ARIMA](https://blogs.oracle.com/ai-and-datascience/post/introduction-to-forecasting-with-arima-in-r)  
+- [TDS on Holt-Winters method](https://towardsdatascience.com/time-series-forecasting-in-r-with-holt-winters-16ef9ebdb6c0)  
+- [Locke Data: Additive or Multiplicative model](https://itsalocke.com/blog/is-my-time-series-additive-or-multiplicative/)  
+
