@@ -323,7 +323,7 @@ acf(HW1_for$residuals, lag.max=20, na.action=na.pass)</code></pre>
 <pre class="r"><code># note: na.action = na.pass because the last value of $residuals is NA
 
 # Box.test (Ljung-Box) is used to indicate the presences of temporal correlations in our data.  
-# Want the p-score &gt; 0.05 for 95% chance the residuals are independent.
+# Want the p-value &gt; 0.05 for 95% chance the residuals are independent.
 
 Box.test(HW1_for$residuals, lag=20, type=&quot;Ljung-Box&quot;)</code></pre>
 <pre><code>## 
