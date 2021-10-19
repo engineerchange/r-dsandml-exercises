@@ -11,6 +11,7 @@ Topics/Packages:
 
 [Week 1 lesson](https://engineerchange.github.io/r-dsandml-exercises/lessons/Week-1.html)  
 [Week 2 lesson](https://engineerchange.github.io/r-dsandml-exercises/lessons/Week-2.html)  
+[Week 2 lesson](https://engineerchange.github.io/r-dsandml-exercises/lessons/Week-3.html)  
 
 ## Week 3/4 - Forecasting, Time Series, Optimization, TidyModels
 
