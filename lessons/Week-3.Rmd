@@ -182,6 +182,8 @@ hist(HW1_for$residuals)
 
 This perhaps shows that Holt-Winters is likely not the _best_ method for forecasting our bacon average cost data.  
 
+<!-- TODO: add ARIMA examples; use fable, zoo, prophet packages -->
+
 # Resources
 - [Forecasting: Principles and Practice, 2nd ed., Rob Hyndman & George Athanasopoulos](https://otexts.com/fpp2/)  
 - [Oracle blog on ARIMA](https://blogs.oracle.com/ai-and-datascience/post/introduction-to-forecasting-with-arima-in-r)  

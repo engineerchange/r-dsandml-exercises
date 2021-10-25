@@ -11,9 +11,8 @@ Topics/Packages:
 
 [Week 1 lesson](https://engineerchange.github.io/r-dsandml-exercises/lessons/Week-1.html)  
 [Week 2 lesson](https://engineerchange.github.io/r-dsandml-exercises/lessons/Week-2.html)  
-[Week 3 lesson](https://engineerchange.github.io/r-dsandml-exercises/lessons/Week-3.html)  
 
-## Week 3/4 - Forecasting, Time Series, Optimization, TidyModels
+## Week 3/4 - Forecasting, Time Series, Optimization, Tidymodels
 
 Packages:  
 - Forecasting: stats, broom/sweep
@@ -24,6 +23,9 @@ Topics:
 - Linear Regression  
 - Logistic Regression  
 - Seasonality  
+
+[Week 3 lesson](https://engineerchange.github.io/r-dsandml-exercises/lessons/Week-3.html)  
+[Week 4 lesson](https://engineerchange.github.io/r-dsandml-exercises/lessons/Week-4.html)  
 
 ## Week 5/6 - Parallelization, Functional Programming (Not Text Analytics & NLP)  
 
