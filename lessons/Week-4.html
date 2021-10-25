@@ -198,10 +198,11 @@ library(nycflights13) </code></pre>
   # Factors are very helpful for modeling, so we convert one column
   mutate(food_regime = factor(food_regime, levels = c(&quot;Initial&quot;, &quot;Low&quot;, &quot;High&quot;)))
 
+set.seed(123) # for sample_n
 urchins %&gt;% sample_n(20) %&gt;% head(20)</code></pre>
 <div data-pagedtable="false">
 <script data-pagedtable-source type="application/json">
-{"columns":[{"label":["food_regime"],"name":[1],"type":["fct"],"align":["left"]},{"label":["initial_volume"],"name":[2],"type":["dbl"],"align":["right"]},{"label":["width"],"name":[3],"type":["dbl"],"align":["right"]}],"data":[{"1":"Low","2":"11.5","3":"0.031"},{"1":"Initial","2":"35.0","3":"0.082"},{"1":"Initial","2":"36.0","3":"0.061"},{"1":"Initial","2":"44.0","3":"0.102"},{"1":"Low","2":"45.0","3":"0.071"},{"1":"High","2":"9.0","3":"0.082"},{"1":"High","2":"15.0","3":"0.102"},{"1":"Low","2":"15.0","3":"0.061"},{"1":"High","2":"13.0","3":"0.112"},{"1":"Low","2":"46.5","3":"0.061"},{"1":"High","2":"11.5","3":"0.071"},{"1":"Low","2":"8.5","3":"0.041"},{"1":"High","2":"15.0","3":"0.092"},{"1":"Initial","2":"13.0","3":"0.061"},{"1":"Low","2":"10.0","3":"0.071"},{"1":"Initial","2":"24.0","3":"0.061"},{"1":"Initial","2":"3.5","3":"0.010"},{"1":"Low","2":"47.5","3":"0.041"},{"1":"High","2":"12.0","3":"0.092"},{"1":"Low","2":"18.0","3":"0.061"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+{"columns":[{"label":["food_regime"],"name":[1],"type":["fct"],"align":["left"]},{"label":["initial_volume"],"name":[2],"type":["dbl"],"align":["right"]},{"label":["width"],"name":[3],"type":["dbl"],"align":["right"]}],"data":[{"1":"Low","2":"15.0","3":"0.061"},{"1":"High","2":"13.0","3":"0.061"},{"1":"Initial","2":"21.0","3":"0.092"},{"1":"High","2":"26.0","3":"0.082"},{"1":"Low","2":"41.0","3":"0.082"},{"1":"High","2":"12.0","3":"0.092"},{"1":"Low","2":"41.0","3":"0.061"},{"1":"Low","2":"47.5","3":"0.041"},{"1":"High","2":"13.0","3":"0.112"},{"1":"Low","2":"5.0","3":"0.041"},{"1":"Low","2":"8.0","3":"0.031"},{"1":"Low","2":"8.5","3":"0.041"},{"1":"Initial","2":"13.0","3":"0.041"},{"1":"Low","2":"46.5","3":"0.061"},{"1":"High","2":"19.0","3":"0.122"},{"1":"High","2":"14.0","3":"0.051"},{"1":"Low","2":"11.5","3":"0.082"},{"1":"Initial","2":"16.0","3":"0.092"},{"1":"Low","2":"10.0","3":"0.071"},{"1":"Low","2":"18.0","3":"0.071"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
   </script>
 </div>
 <p>A plot of each urchin and its food_regime</p>
@@ -384,7 +385,7 @@ flights_rec &lt;-
   # exclude any cases where we may not have zero-variance predictors, or where the training set have a single value
   step_zv(all_predictors())</code></pre>
 <p>Three steps to running a recipe: (1) process the recipe using the training set, (2) apply the recipe to the training set, (3) apply the recipe to the test set.</p>
-<p>Create a workflow using {{worfklows}} from {{tidymodels}} to pair together the model and the recipe together. This will make it easier to</p>
+<p>Create a workflow using {{workflows}} from {{tidymodels}} to pair together the model and the recipe together. This will make it easier to</p>
 <pre class="r"><code>lr_mod &lt;- 
   logistic_reg() %&gt;% 
   set_engine(&quot;glm&quot;)

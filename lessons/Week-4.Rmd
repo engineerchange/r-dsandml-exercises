@@ -37,6 +37,7 @@ urchins <-
   # Factors are very helpful for modeling, so we convert one column
   mutate(food_regime = factor(food_regime, levels = c("Initial", "Low", "High")))
 
+set.seed(123) # for sample_n
 urchins %>% sample_n(20) %>% head(20)
 ```
 
@@ -227,7 +228,7 @@ flights_rec <-
 
 Three steps to running a recipe: (1) process the recipe using the training set, (2) apply the recipe to the training set, (3) apply the recipe to the test set.
 
-Create a workflow using {{worfklows}} from {{tidymodels}} to pair together the model and the recipe together. This will make it easier to 
+Create a workflow using {{workflows}} from {{tidymodels}} to pair together the model and the recipe together. This will make it easier to 
 
 ```{r, message=FALSE}
 lr_mod <- 
