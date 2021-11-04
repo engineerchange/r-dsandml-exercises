@@ -1,0 +1,15 @@
+---
+title: "Week 5: Optimization & Parallel Processing"
+output:
+  html_document:
+    df_print: paged
+  github_document: default
+---
+
+
+# Objectives  
+
+
+
+# Data 
+
