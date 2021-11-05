@@ -1,5 +1,5 @@
 ---
-title: "Week 5: Optimization & Parallel Processing"
+title: "Week 5: Profiling and Parallel Processing"
 output:
   html_document:
     df_print: paged
@@ -8,8 +8,202 @@ output:
 
 
 # Objectives  
-
+- Define functional programming, scoping, and applications.  
+- Profiling and parallel computing.  
 
 
 # Data 
 
+
+# Functional programming  
+
+
+Functions are directives in R to simplify repeatable tasks or error-prone tasks.  
+
+```{r, message=FALSE}
+
+round(0.5)
+round(1.5)
+round(2.5)
+round(3.5)
+
+# R uses a banker's rounding form where 0.5 rounds to nearest even integer.
+
+# very common example from stackoverflow
+# https://stackoverflow.com/questions/12688717/round-up-from-5
+
+round2 = function(x, n) {
+  posneg = sign(x)
+  z = abs(x)*10^n
+  z = z + 0.5 + sqrt(.Machine$double.eps)
+  z = trunc(z)
+  z = z/10^n
+  z*posneg
+}
+
+# round2 allows us to remedy this
+
+round2(0.5,0)
+round2(1.5,0)
+round2(2.5,0)
+round2(3.5,0)
+
+# note we need to use the second parameter. round() defaults to digits=0, but round2() does not.
+
+round2 = function(x, n=0) {
+  posneg = sign(x)
+  z = abs(x)*10^n
+  z = z + 0.5 + sqrt(.Machine$double.eps)
+  z = trunc(z)
+  z = z/10^n
+  z*posneg
+}
+
+round2(0.5)
+round2(1.5)
+
+```
+
+
+Functions require you to be explicit when printing.  
+
+```{r, message=FALSE}
+x = 1
+y = 1
+z = x + y
+x
+y
+z
+
+tst <- function(){
+x = 1
+y = 1
+z = x + y
+x
+y
+z
+}
+tst()
+```
+
+
+Other random function things.  
+
+```{r, message=FALSE}
+# can call arguments
+args(round)
+
+# partial matching of arguments is allowed and after argument called, it goes remaining positional matching
+round(dig=2,5.7777)
+```
+
+
+You can build on R functions using the `...` argument.  
+
+```{r, message=FALSE}
+
+round2 = function(x, n=0) {
+  posneg = sign(x)
+  z = abs(x)*10^n
+  z = z + 0.5 + sqrt(.Machine$double.eps)
+  z = trunc(z)
+  z = z/10^n
+  z*posneg
+}
+
+# this means the user needs to provide at least x, but any other parameters are optional but will be passed to the function appropriately
+round2perc = function(x, ...){
+  x = round2(x*100, ...)
+  paste0(as.character(x),"%")
+}
+
+# round2 as normal
+round2(0.9575,2)
+
+# round2perc with no "n" defined
+round2perc(0.9575)
+
+# round2perc with optional "n" defined
+round2perc(0.9575,3)
+
+```
+
+
+You can use functions in functions.  
+
+```{r, message=FALSE}
+
+# declaring function in function
+make.power <- function(n) {
+  pow <- function(x) {
+    x^n
+    }
+  pow 
+}
+
+# we are passing n to the parent function
+cube <- make.power(3)
+square <- make.power(2)
+
+# we are passing x to the two functions with 'n' defined differently
+cube(3)
+square(3)
+```
+
+Note: be careful with doing this. There can be some odd scoping rules.
+
+# Profiling
+
+Profiling can be a good way to see why things are moving slowly. Expert R programmers will use this to determine what routines need to be sped up and to determine where bottlenecks are in workflows.
+
+`system.time` is a simple routine to see how long something takes.
+
+```{r, message=FALSE}
+
+# homepage of wikipedia
+system.time(readLines("https://en.wikipedia.org"))
+
+# longest wikipedia page as of Nov 2021
+system.time(readLines("https://en.wikipedia.org/wiki/Border_control"))
+
+```
+
+`Rprof` and `summaryRprof` can be used to interpret how long subroutines take
+
+```{r, message=FALSE}
+
+Rprof() # start Rprof
+system.time(readLines("https://en.wikipedia.org/wiki/Border_control"))
+Rprof(NULL) # end Rprof
+summaryRprof() # looks at profiler output
+
+```
+
+# Parallel computing
+
+Some functions, like crossprod() and basic mathematics (Basic Linear Algebra Subroutines - BLAS) are already parallelized for you.  
+
+## Resources available
+
+```{r,message=FALSE}
+library(parallel)
+
+detectCores() # means I have 12 processors available to me
+
+```
+
+```{r}
+library(parallel)
+
+#r <- mclapply(1:10, function(i) {
+#  Sys.sleep(2)  ## Do nothing for 10 seconds
+#  }, mc.cores = 10)      ## Split this job across 10 cores
+# r
+```
+
+# Resources
+
+- [R Programming for Data Science: Functions](https://bookdown.org/rdpeng/rprogdatascience/functions.html)
+- [R Programming for Data Science: Scoping](https://bookdown.org/rdpeng/rprogdatascience/scoping-rules-of-r.html)
+- [R Programming for Data Science: Profiling R Code](https://bookdown.org/rdpeng/rprogdatascience/profiling-r-code.html)  
+- [R Programming for Data Science: Parallel Computing](https://bookdown.org/rdpeng/rprogdatascience/parallel-computation.html)  
