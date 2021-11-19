@@ -1,0 +1,161 @@
+---
+title: 'Week 6: Tree-Based Models'
+output:
+  html_document:
+    df_print: paged
+  github_document: default
+---
+
+# Objectives:
+
+- Overview of tree-based models
+- Decision trees in R  
+- Ensemble methods: bagging, boosting, random forests  
+
+# Overview
+
+Tree-based algorithms are used in classification and regression problems. Input variables are repeatedly segmented into subsets to build a decision tree. Each branch of the tree is tested for efficiency and effectiveness.  
+
+- Efficiency - a measure evaluating how many variables are needed to model, or how complex the model is  
+- Effectiveness - how good the model is at predicting an expected response variable  
+
+Tree-based methods are:  
+
+- easily interpretable (cost functions are clear and easier to compute manually)  
+- can be used with both categorical and numerical data  
+- computationally can be used with large datasets  
+- non-parametric method - meaning they have no assumption on distributions of data  
+- can easily be overfit - user needs to be careful to evaluate whether adding more features to a model helps the model  
+- can be bad with continuous data (data can be lost as it simply does stratification at the node level)  
+
+Terminology:  
+
+- **Root Node** - the original decision node, representing the entire population (or sample) of data  
+- **Splitting** - when a node is divided into two or more children nodes  
+- **Decision Node** - when a node splits into further children nodes  
+- **Leaf/Terminal Node** - when a node does not split and is the end (bottom) of the tree  
+- **Pruning** - opposite of splitting, when you remove children nodes of a decision node  
+- **Branch** - subset of the entire tree  
+
+Applications:  
+
+- Customer segmentation (e.g., customer churn)  
+
+# Packages
+```
+- C50 # includes methods, like C5.0
+- rpart # includes methods, like rpart, rpart.predict, prune  
+- rpart.plot # includes methods, like prp, rpart.rules  
+- partykit # includes methods, like as.party
+- RWeka  # includes methods, like J48 (Java implementation of C4.5)
+- caret # includes methods, like trainControl, train, predict  
+- palmerpenguins # dataset
+```
+
+# Decision Tree, Example 1 w/ C50
+
+## What is C.50 (package C50)?  
+
+C5.0 is based on Quinlan's C4.5, but lacks some features. Quinlan's C4.5 is a decision tree that uses a gain ratio to help with attribute selection:  
+
+- the attribute with the largest gain ratio, GainRatio (A) = Gain(A) / Split Info(A)  
+- Split Info is a measure that normalizes the gain computation by eliminating a bias for attribute choices with many outcomes.  
+- Gain is calculated using Info metrics. These are a cost function to prevent too many splits within an attribute, and weight less splits as more.  
+
+Load in dataset:  
+```{r, message=FALSE}
+library(tidyverse)
+library(palmerpenguins)
+penguins = palmerpenguins::penguins
+```
+
+Run C5.0 decision tree with dataset:
+```{r, message=FALSE}
+library(C50)
+
+# simple case where we use all variables and ask to use at minimum 2 variables to explain the data
+pg.C50 <- C5.0(species ~ ., data=penguins, control=C5.0Control(minCases=2))
+
+summary(pg.C50)
+
+plot(pg.C50, main="Penguin classification decision tree with C.50")
+```
+
+Above, the confusion matrix shows we've failed to classify 4 penguins using this. But perhaps, we don't want to cheat by using the island.
+
+
+```{r, message=FALSE}
+
+# remove the 'island' variable from consideration
+pg.C50 <- C5.0(species ~ ., data=penguins %>% select(-island), control=C5.0Control(minCases=2))
+
+summary(pg.C50)
+
+plot(pg.C50, main="Penguin classification decision tree with C.50 (w/o island)")
+```
+
+Above, the confusion matrix shows we've failed to classify 3 penguins using this, but the model is a bit more complex now.
+
+```{r, message=FALSE}
+
+# try with at least 3 variables
+pg.C50 <- C5.0(species ~ ., data=penguins %>% select(-island), control=C5.0Control(minCases=3))
+
+summary(pg.C50)
+
+plot(pg.C50, main="Penguin classification decision tree with C.50 (w/o island)")
+```
+
+Now we have a more complex model with the addition of body_mass as a variable. It's all about balancing adding more explanatory variables with the risk of overfitting.  
+
+# Decision Tree, Example 2 w/ rpart  
+
+```{r, message=FALSE}
+
+library(partykit)
+library(rpart)
+library(rpart.plot)
+set.seed(42)
+
+pg.rpart <- rpart(species ~ ., data = penguins, control=rpart.control(minsplit=2), method="class")
+pg.rpart
+
+# graph the decision tree
+prp(pg.rpart, main="rpart penguins classification decision tree", type=2, extra=104, fallen.leaves=TRUE, roundint=FALSE)
+
+plot(as.party(pg.rpart),"rpart penguins classification decision tree")
+
+rpart.rules(pg.rpart, roundint=FALSE)
+
+```
+
+# Decision Tree, Example 3 w/ rpart (train/test)
+
+```{r, message=FALSE}
+
+library(partykit)
+library(rpart)
+library(rpart.plot)
+library(caret)
+set.seed(42)
+
+trainIndex = createDataPartition(penguins$species, p=0.8,list=FALSE)
+pg.train = penguins[trainIndex,]
+pg.test = penguins[-trainIndex,]
+
+pg.rpart <- rpart(species ~ ., data = pg.train, control=rpart.control(xval=10), method="class")
+
+pg.predict <- predict(pg.rpart, pg.test)
+
+pg.rpart$cptable
+
+```
+
+# Resources
+
+## Descriptions
+- [Tree-Based Models (c3.ai)](https://c3.ai/glossary/data-science/tree-based-models/)  
+- Just Enough R, Chapter 6: Tree Methods (book, 2020)
+
+## Packages
+- [J48 (Java implementation of Quinlan's C4.5)](https://weka.sourceforge.io/doc.dev/weka/classifiers/trees/J48.html)  
