@@ -27,12 +27,22 @@ Topics:
 [Week 3 lesson](https://engineerchange.github.io/r-dsandml-exercises/lessons/Week-3.html)  
 [Week 4 lesson](https://engineerchange.github.io/r-dsandml-exercises/lessons/Week-4.html)  
 
-## Week 5/6 - Parallelization, Functional Programming (Not Text Analytics & NLP)  
+## Week 5/6 - Parallelization, Functional Programming  
 
 Packages:  
 - Parallelization: foreach, doParallel, futures  
 
-## Week 7/8 - PCA, Feature Engineering, Classification / Clustering, (Not Topic Modelling)  
+[Week 5 lesson](https://engineerchange.github.io/r-dsandml-exercises/lessons/Week-5.html)  
+
+## Week 6/7 - Tree-based methods  
+
+[Week 6 lesson](https://engineerchange.github.io/r-dsandml-exercises/lessons/Week-6.html)  
+[Week 7 lesson](https://engineerchange.github.io/r-dsandml-exercises/lessons/Week-7.html)  
+
+Packages:
+- rpart, tree, randomForest, gbm  
+
+## Week 8/9 - PCA, Feature Engineering, Classification / Clustering, (Not Topic Modelling) 
 
 Packages:  
 - Python Integration: reticulate  
@@ -48,9 +58,9 @@ Topics:
 Packages:  
 - Classification / Clustering: ggraph, igraph  
 
-## Week 9/10 - Gradient Boosting, Random Forests, SVM
+## Week 10 - SVM
 
-## Week 11/12 - GIS? NNs, LDA, etc.
+## Week 11+ - GIS? NNs, LDA, etc.
 
 Packages:  
 - ggmap, leaflet, plotly  

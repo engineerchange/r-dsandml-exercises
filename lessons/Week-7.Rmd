@@ -1,0 +1,174 @@
+---
+title: 'Week 7: Tree-Based Ensemble Models'
+output:
+  html_document:
+    df_print: paged
+  github_document: default
+---
+
+# Objectives:
+
+- Decision trees in R (CART method)
+- Ensemble methods: bagging, boosting, random forests  
+
+# Data
+```{r, message=FALSE}
+library(tidyverse)
+library(palmerpenguins)
+penguins = palmerpenguins::penguins
+
+# remove all NA values or this will cause issues later
+penguins = na.omit(penguins)
+```
+
+# Decision Tree
+
+Do a simple tree with penguins.  
+```{r, message=FALSE}
+library(tree)
+
+initial_tree = tree(species~.,data=penguins)
+initial_tree
+summary(initial_tree)
+plot(initial_tree)
+text(initial_tree,pretty=0) # applies text to former plot
+
+```
+
+Do a train/test split and apply tree and see confusion matrix.
+```{r, message=FALSE}
+
+set.seed(42)
+nrow(penguins)*0.7
+train = sample(1:nrow(penguins),232)
+test = penguins[-train,]
+
+species.tree = tree(species~.,data=penguins,subset=train)
+species.predict = predict(species.tree,test,type="class")
+table(species.predict,test$species)
+
+# classification accuracy
+(45+18+37)/104
+
+```
+
+Can apply cross-validation to an optimal level of tree complexity.  
+
+```{r, message=FALSE}
+set.seed(24)
+cv.model = cv.tree(species.tree,FUN=prune.misclass)
+cv.model
+plot(cv.model)
+```
+Now we apply as a 4-node tree.
+
+```{r, message=FALSE}
+new_model = prune.misclass(species.tree,best=4)
+summary(new_model)
+plot(new_model)
+text(new_model,pretty=0)
+
+new_model.predict = predict(new_model,test,type="class")
+table(new_model.predict,test$species)
+```
+
+# Bagging  
+
+Decision trees suffer from high variance. Bootstrap aggregation, or bagging, is a method to reduce the variance of a statistical learning method, like decision trees or regression. Bagging involves taking repeated samples from a single training dataset. We generate multiple bootstrapped training datasets, and train our method on then. We average all the predictions.  
+
+In the case of classification trees, the majority vote is the final prediction. We construct a decision tree for each of the bootstrapped training datasets, and we choose not to prune the results. The most commonly occurring class across all of the predictions made across various trees is our final prediction.  
+
+The number of trees will not lead to overfitting. A very large value of bootstraps allows the error to settle down.  
+
+As the trees are "bagged". The interpretation of the resulting model is decreased from a standard decision tree. However, we can still calculate variable importance using a Gini index, or the RSS (for regression trees).  
+
+Each bagged tree uses about 2/3 of the observations. The remaining 1/3 of the observations, called out-of-bag observations (OOB), can be used to calculate classification error. This measure of error is virtually similar to leave-one-out cross-validation error.
+
+```{r, message=FALSE}
+library(randomForest) # we do bagging, using the randomForest package
+set.seed(24)
+
+# set mtry to 7, representing all 7 predictor features
+bag.species = randomForest(species~.,data=penguins,subset=train,mtry=7,importance=TRUE)
+bag.species
+cat("-----")
+# try less trees
+bag.species = randomForest(species~.,data=penguins,subset=train,mtry=7,ntree=25)
+bag.species
+cat("-----")
+# try more trees
+bag.species = randomForest(species~.,data=penguins,subset=train,mtry=7,ntree=2500)
+bag.species
+```
+
+# Random Trees
+
+Similar to bagging, we build a number of decision trees using bootstrapped training samples. The difference is in decorrelating the trees as they are created.  
+
+Each time a split of a tree is considered, a random sample of predictors (m) are chosen as candidates from the full set of predictors (p). Usually only SQRT(p) is the sample chosen. (For regression trees, this is usually p/3). This sampling forces trees to not consider a majority of the available predictors; which helps prevent a strong predictor from always reoccurring when aggregating trees. This is the decorrelation aspect of random trees. On average, (p-m)/p trees will not consider the strongest predictor.  
+
+If a random forest is built using m=p, then this amounts to simply bagging. Similar to bagging, the number of trees set does not allow for overfitting.
+
+```{r, message=FALSE}
+library(randomForest) # we do bagging, using the randomForest package
+set.seed(24)
+
+# as above, but with SQRT(7) features, or about 3
+bag.species = randomForest(species~.,data=penguins,subset=train,mtry=3,importance=TRUE)
+bag.species
+
+# try less trees
+bag.species = randomForest(species~.,data=penguins,subset=train,mtry=3,ntree=25)
+bag.species
+
+# try more trees
+bag.species = randomForest(species~.,data=penguins,subset=train,mtry=3,ntree=2500)
+bag.species
+
+# look at importance of features
+importance(bag.species)
+
+# MeanDecreaseAccuracy references the prediction error (error rate for classification, MSE for regression)
+# MeanDecreaseGini references the total decrease in node impurity from splitting the variable (for regression, it is residual sum of squares)
+
+varImpPlot(bag.species)
+# we can see the importance of each variable from top to bottom
+```
+
+# Boosting  
+
+Boosting does not involve bootstrapped datasets, like bagging and random trees. Trees are grown sequentially with boosting; each tree is grown using information from previously grown trees.  
+
+Fit a decision tree to the residuals from the model, instead of to the outcome. We then add this new decision tree into the fitted function in order to update the residuals. Each of these trees can be small, which is set by an interaction depth parameter d, the number of splits allowed for each tree. Often a d=1 is set.  
+
+A shrinkage parameter λ controls the rate at which boosting learns. Typical values are 0.01 or 0.001. In general, methods that learn slowly tend to perform well. With a lower λ, you will need to allow for more trees.  
+
+The number of trees can cause overfitting. Cross-validation is used to select the number of trees.  
+
+```{r, message=FALSE}
+library(gbm)
+set.seed(24)
+
+# choose bernoulli for binary classification, for regression we would choose gaussian
+boost.species = gbm(species~.,data=penguins[train,],
+                    distribution='multinomial',n.trees=500,interaction.depth=4)
+summary(boost.species)
+
+species.predict = predict(boost.species,newdata=test,n.trees=500)
+#table(species.predict,test$species)
+
+```
+
+```{r, message=FALSE}
+library(gbm)
+set.seed(24)
+
+# choose bernoulli for binary classification, for regression we would choose gaussian
+boost.species = gbm(species~.,data=penguins[train,],
+                    distribution='multinomial',n.trees=500,interaction.depth=1,shrinkage=0.2)
+summary(boost.species)
+
+```
+
+
+
